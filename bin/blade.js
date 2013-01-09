@@ -29,9 +29,13 @@ exec('rm -rf ./temp', function() {
 function launcher() {
     while (running < limit && apps.length > 0) {
         var app = apps.shift()
-        util.puts(' ++ ' + app.replace(apps_path, ''))
-        inspect(app)
-        running++
+
+        if(app !='') {
+        	util.puts(' Starting Process: ' + app.replace(apps_path, ''))
+        	running++
+        	inspect(app)
+        }
+        	
     }
 }
 
@@ -43,8 +47,7 @@ function inspect(app) {
     exec('unzip "'+root+app+'" -d "'+folder+'"', function(error, stdout, stderr) {
 	    match_types.forEach(function(match_type) {
 			exec('find "'+folder+'" | grep -i "'+match_type+'"', function(error, stdout, stderr) {
-				console.log(stdout)
-				if (stdout != '' && app != '') {
+				if (stdout != '') {
 					if (matches[app] == null) {
 						matches[app] = {}
 						for (var i=0; i<match_types.length; i++) {
@@ -53,15 +56,25 @@ function inspect(app) {
 					}
 					matches[app][match_type]++
 				}
-                running--
-                util.puts(' -- ' + app)
+
+				
+				//If you've reached the last match_type then your done checking this app
+				if(match_type == match_types[match_types.length-1])
+                	running--
+
+                //util.puts(' -- ' + app)
+                //util.puts('running:'+running)
     			launcher()
-                if (running == 0) done()
+                if (running == 0) {
+                	done()
+                }
 			})
 		})
 	})
 }
 
 function done() {
-	util.puts(JSON.stringify(matches))
+	//util.puts(JSON.stringify(matches))
+	console.log(matches)
+	process.exit()
 }
