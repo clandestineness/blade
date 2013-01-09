@@ -8,11 +8,13 @@ var   util = require('util')
 	, apps = []
     , running = 0
     , limit = 10
+    , apps_path
 
 
 exec('rm -rf ./temp', function() {
 	exec('mkdir ./temp')
 	tilde( '~/Music/iTunes/iTunes Media/Mobile Applications/', function(path){
+		apps_path = path
 
 		exec('find "'+path+'" -name "*.ipa"', function(error, stdout, stderr) {
 			apps = stdout.split('\n')
@@ -27,20 +29,21 @@ exec('rm -rf ./temp', function() {
 function launcher() {
     while (running < limit && apps.length > 0) {
         var app = apps.shift()
-        util.puts(' ++ ' + app.replace('./Mobile Applications/', ''))
+        util.puts(' ++ ' + app.replace(apps_path, ''))
         inspect(app)
         running++
     }
 }
 
 function inspect(app) {
-	var   root = './Mobile Applications/'
+	var   root = apps_path
 		, app = app.replace(root, '')
 		, folder = './temp/'+app.replace('./','')
 	//util.puts('  # inspecting ' + app)
     exec('unzip "'+root+app+'" -d "'+folder+'"', function(error, stdout, stderr) {
 	    match_types.forEach(function(match_type) {
 			exec('find "'+folder+'" | grep -i "'+match_type+'"', function(error, stdout, stderr) {
+				console.log(stdout)
 				if (stdout != '' && app != '') {
 					if (matches[app] == null) {
 						matches[app] = {}
