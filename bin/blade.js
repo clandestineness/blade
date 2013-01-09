@@ -2,19 +2,26 @@
 
 var   util = require('util')
 	, exec = require('child_process').exec
+	, tilde = require('tilde-expansion')
 	, match_types = ['phonegap', 'cordova', 'jquery', 'ember', 'sencha', 'backbone', 'jqtouch', 'kendo', 'bootstrap', 'modernizr', 'normalize', 'zepto']
 	, matches = {}
 	, apps = []
     , running = 0
     , limit = 10
 
+
 exec('rm -rf ./temp', function() {
 	exec('mkdir ./temp')
-	exec('find "./Mobile Applications" -name "*.ipa"', function(error, stdout, stderr) {
-		apps = stdout.split('\n')
- 		//apps.forEach(inspect)
-        launcher()
+	tilde( '~/Music/iTunes/iTunes Media/Mobile Applications/', function(path){
+
+		exec('find "'+path+'" -name "*.ipa"', function(error, stdout, stderr) {
+			apps = stdout.split('\n')
+
+	        launcher()
+
+		})
 	})
+	
 })
 
 function launcher() {

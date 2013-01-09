@@ -20,7 +20,7 @@
     "url": "https://github.com/nitobi/blade.git"
   },
   "dependencies" : {
-    
+    "tilde-expansion":"*"
   },
   "devDependencies": {
 
