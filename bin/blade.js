@@ -8,46 +8,70 @@ var   util = require('util')
 	, apps = []
     , running = 0
     , limit = 10
-    , apps_path
+    , root
+    , checked = {}
 
 
 exec('rm -rf ./temp', function() {
 	exec('mkdir ./temp')
 	tilde( '~/Music/iTunes/iTunes Media/Mobile Applications/', function(path){
-		apps_path = path
+		root = path
+
+		if(root.charAt(0) == '~'){
+			util.puts('Failed to find iTunes Mobile Applications directory. Exiting script...')
+			process.exit()
+		}
 
 		exec('find "'+path+'" -name "*.ipa"', function(error, stdout, stderr) {
 			apps = stdout.split('\n')
 
-	        launcher()
+			util.puts('Launching Blade, searching *.ipa content. Limited to '+limit+' apps at once.')
+			//Start searching
+			while(running < limit)
+	        	launcher()
 
 		})
 	})
 	
 })
 
+//Launchs the next app for inspection if available
 function launcher() {
-    while (running < limit && apps.length > 0) {
-        var app = apps.shift()
+	if(apps.length > 0 && running < limit) {
+		var app = apps.shift()
 
         if(app !='') {
-        	util.puts(' Starting Process: ' + app.replace(apps_path, ''))
+
+        	util.puts('Starting Process: ' + app.replace(root, ''))
+
         	running++
         	inspect(app)
         }
-        	
     }
+    else if(apps.length == 0 && running == 0)
+    	done()
 }
 
+//Unzips and examines the contents of the app for phonegap/javascript elements
 function inspect(app) {
-	var   root = apps_path
-		, app = app.replace(root, '')
+	var   app = app.replace(root, '')
 		, folder = './temp/'+app.replace('./','')
-	//util.puts('  # inspecting ' + app)
+
+	//util.puts('Inspecting ' + app)
+
     exec('unzip "'+root+app+'" -d "'+folder+'"', function(error, stdout, stderr) {
-	    match_types.forEach(function(match_type) {
+
+    	//util.puts(app+' unziped, searching for matches...')
+
+    	checked[app] = 0
+
+	    match_types.forEach(function(match_type, index) {
+
 			exec('find "'+folder+'" | grep -i "'+match_type+'"', function(error, stdout, stderr) {
 				if (stdout != '') {
+
+					//util.puts("Matched "+app+" with "+match_type)
+
 					if (matches[app] == null) {
 						matches[app] = {}
 						for (var i=0; i<match_types.length; i++) {
@@ -56,25 +80,33 @@ function inspect(app) {
 					}
 					matches[app][match_type]++
 				}
+				checked[app]++
 
+				util.puts("Checked "+checked[app]+"/"+match_types.length+" match_types for "+app)
 				
 				//If you've reached the last match_type then your done checking this app
-				if(match_type == match_types[match_types.length-1])
-                	running--
+				if(checked[app] == match_types.length) {
+					running--
+					util.puts('Done Checking '+app+', Running:'+running)
+					// if(matches[app]==null)
+					// 	util.puts('No Matches found for '+app)
 
-                //util.puts(' -- ' + app)
-                //util.puts('running:'+running)
-    			launcher()
-                if (running == 0) {
-                	done()
-                }
+					//If there are no more apps to launch and no processes running then we are done.
+					if (apps.length == 0 && running == 0) {
+	                	done()
+	                }
+	                else if(app.length != 0)
+	                	launcher()
+				}
+                
 			})
 		})
+
 	})
 }
 
+//Prints the results of the search
 function done() {
-	//util.puts(JSON.stringify(matches))
+	util.puts("\nResults:")
 	console.log(matches)
-	process.exit()
 }
