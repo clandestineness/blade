@@ -11,7 +11,8 @@
     } 
   ],
   "bin": {
-    "blade": "./bin/blade.js"
+    "blade": "./bin/blade.js",
+    "data": "./bin/data.js"
   },
   "scripts": {
   },
@@ -20,7 +21,13 @@
     "url": "https://github.com/nitobi/blade.git"
   },
   "dependencies" : {
-    "tilde-expansion":"*"
+    "colors": "0.6.x",
+    "prompt": "0.2.x",
+    "tilde-expansion": "*",
+    "shelljs": "0.0.x",
+    "optimist": "0.3.x",
+    "png.js": "0.1.x",
+    "exec-sync": "0.1.x"
   },
   "devDependencies": {
 
